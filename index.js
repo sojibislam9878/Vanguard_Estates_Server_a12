@@ -30,6 +30,7 @@ async function run() {
   try {
     const apartmentCollection = client.db("ApartmentDB").collection("allApartments")
     const agreementCollection = client.db("ApartmentDB").collection("allAgreement")
+    const usersCollection = client.db("ApartmentDB").collection("allUsers")
     // apartment related api
     app.get("/apartments", async (req, res)=>{
       const result =await apartmentCollection.find().toArray()
@@ -49,6 +50,28 @@ async function run() {
       res.send(result);
 
     })
+
+    // user related api 
+
+    app.put("/user", async (req, res)=>{
+      const user = req.body
+      const isExist =await usersCollection.findOne({email:user?.email})
+      if (isExist) {
+        return
+      }
+      const options = {upsert: true}
+      const query = {email: user?.email}
+      const updateDocs = {
+        $set:{
+          ...user,
+        }
+      }
+      const result =await usersCollection.updateOne(query, updateDocs, options)
+      res.send(result)
+    })
+
+
+
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
