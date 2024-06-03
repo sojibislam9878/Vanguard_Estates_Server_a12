@@ -37,6 +37,13 @@ async function run() {
     })
 
     app.post("/agreement", async (req, res)=>{
+      const {email}=req.query
+      console.log(email);
+      const userExist = await agreementCollection.findOne({ userEmail:email })
+      console.log(!!userExist);
+      if (userExist) {
+        return res.json({ error: 'User already has an existing agreement.' })
+      }
       const newAgreement = req.body;
       const result = await agreementCollection.insertOne(newAgreement);
       res.send(result);
