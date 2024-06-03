@@ -29,10 +29,18 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const apartmentCollection = client.db("ApartmentDB").collection("allApartments")
+    const agreementCollection = client.db("ApartmentDB").collection("allAgreement")
     // apartment related api
     app.get("/apartments", async (req, res)=>{
       const result =await apartmentCollection.find().toArray()
       res.send(result)
+    })
+
+    app.post("/agreement", async (req, res)=>{
+      const newAgreement = req.body;
+      const result = await agreementCollection.insertOne(newAgreement);
+      res.send(result);
+
     })
     // auth related api
     app.post('/jwt', async (req, res) => {
