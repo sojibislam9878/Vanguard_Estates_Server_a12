@@ -83,6 +83,19 @@ async function run() {
       res.send(result)
     })
 
+    // remove a member 
+    app.patch("/user/update/:email", async (req, res)=>{
+      const email = req.params.email
+      const user = req.body
+      const query = {email}
+      const updateDocs = {
+        $set:{ role:"user"}
+      }
+
+      const result = await usersCollection.updateOne(query, updateDocs)
+      res.send(result)
+    })
+
 
 
     // auth related api
