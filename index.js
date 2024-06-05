@@ -42,7 +42,6 @@ async function run() {
       const {email}=req.query
       console.log(email);
       const userExist = await agreementCollection.findOne({ userEmail:email })
-      console.log(!!userExist);
       if (userExist) {
         return res.json({ error: 'User already has an existing agreement.' })
       }
@@ -50,6 +49,12 @@ async function run() {
       const result = await agreementCollection.insertOne(newAgreement);
       res.send(result);
 
+    })
+
+    // find all agreement 
+    app.get("/allagreements", async (req, res)=>{
+      const result = await agreementCollection.find().toArray()
+      res.send(result)
     })
 
     // user related api 
