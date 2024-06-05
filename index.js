@@ -169,6 +169,15 @@ async function run() {
       res.send(result)
     })
 
+    // delete a coupons 
+    app.delete("/deletecoupons/:id", async (req, res)=>{
+      const id =req.params.id
+      const query = { _id: new ObjectId (id) }
+      console.log(query);
+      const result =await couponsCollection.deleteOne(query)
+      res.send(result)
+    })
+
 
 
     // auth related api
