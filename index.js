@@ -32,6 +32,7 @@ async function run() {
     const agreementCollection = client.db("ApartmentDB").collection("allAgreement")
     const usersCollection = client.db("ApartmentDB").collection("allUsers")
     const announcmentCollection = client.db("ApartmentDB").collection("allAnnouncment")
+    const couponsCollection = client.db("ApartmentDB").collection("allcoupons")
     // apartment related api
     app.get("/apartments", async (req, res)=>{
       const result =await apartmentCollection.find().toArray()
@@ -152,6 +153,14 @@ async function run() {
     app.post("/announcment", async (req, res)=>{
       const newAnnouncement = req.body
       const result =await announcmentCollection.insertOne(newAnnouncement)
+      res.send(result)
+    })
+
+    // coupons related api 
+    app.post("/coupons" , async (req, res)=>{
+      const newCoupon = req.body
+      console.log(newCoupon);
+      const result = await couponsCollection.insertOne(newCoupon)
       res.send(result)
     })
 
