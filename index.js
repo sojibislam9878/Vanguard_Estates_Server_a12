@@ -69,11 +69,17 @@ async function run() {
       const result =await usersCollection.updateOne(query, updateDocs, options)
       res.send(result)
     })
-
-    // user role finding
+    
+    // find user with email
     app.get("/user/:email" , async (req, res)=>{
       const email = req.params.email
       const result = await usersCollection.findOne({email})
+      res.send(result)
+    })
+
+    // get all member 
+    app.get ("/members", async(req, res)=>{
+      const result =await usersCollection.find({role:"member"}).toArray()
       res.send(result)
     })
 
