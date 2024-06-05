@@ -159,8 +159,13 @@ async function run() {
     // coupons related api 
     app.post("/coupons" , async (req, res)=>{
       const newCoupon = req.body
-      console.log(newCoupon);
       const result = await couponsCollection.insertOne(newCoupon)
+      res.send(result)
+    })
+
+    // get all coupons 
+    app.get("/allcoupons", async (req, res)=>{
+      const result = await couponsCollection.find().toArray()
       res.send(result)
     })
 
