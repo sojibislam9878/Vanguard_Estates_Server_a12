@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 3000
@@ -53,8 +53,40 @@ async function run() {
 
     // find all agreement 
     app.get("/allagreements", async (req, res)=>{
-      const result = await agreementCollection.find().toArray()
+      const result = await agreementCollection.find({status:"pending"}).toArray()
       res.send(result)
+    })
+
+    // update agreement by admin 
+    app.put("/agreement/update/:id", async(req,res)=>{
+      console.log(req.params.id);
+      const id = req.params.id
+      const {action} = req.body
+      console.log(action);
+      const options = {upsert:true}
+      const query = { _id: new ObjectId (id) }
+      
+      if (action === "accept") {
+        const updateDocs = {
+          $set:{
+            status:"checked"
+          }
+        }
+
+        const result = await agreementCollection.updateOne(query, updateDocs, options)
+        res.send(result)
+        
+      }
+      if (action === "reject") {
+        const updateDocs = {
+          $set:{
+            status:"checked"
+          }
+        }
+
+        const result = await agreementCollection.updateOne(query, updateDocs, options)
+        res.send(result)
+      }
     })
 
     // user related api 
@@ -96,6 +128,19 @@ async function run() {
       const query = {email}
       const updateDocs = {
         $set:{ role:"user"}
+      }
+
+      const result = await usersCollection.updateOne(query, updateDocs)
+      res.send(result)
+    })
+
+    // update user to member
+    app.patch("/user/:email", async (req, res)=>{
+      const email = req.params.email
+      const user = req.body
+      const query = {email}
+      const updateDocs = {
+        $set:{ role:"member"}
       }
 
       const result = await usersCollection.updateOne(query, updateDocs)
