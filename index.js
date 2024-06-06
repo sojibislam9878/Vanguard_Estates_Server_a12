@@ -60,6 +60,13 @@ async function run() {
       res.send(result)
     })
 
+    // find a agreement by email 
+    app.get("/agreement/:email", async (req, res)=>{
+      const email = req.params.email
+      const result = await agreementCollection.findOne({userEmail:email})
+      res.send(result)
+    })
+
     // update agreement by admin 
     app.put("/agreement/update/:id", async(req,res)=>{
       console.log(req.params.id);
