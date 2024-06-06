@@ -3,6 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -33,6 +34,7 @@ async function run() {
     const usersCollection = client.db("ApartmentDB").collection("allUsers")
     const announcmentCollection = client.db("ApartmentDB").collection("allAnnouncment")
     const couponsCollection = client.db("ApartmentDB").collection("allcoupons")
+    const paymentCollection = client.db("ApartmentDB").collection("allPayment")
     // apartment related api
     app.get("/apartments", async (req, res)=>{
       const result =await apartmentCollection.find().toArray()
@@ -177,6 +179,31 @@ async function run() {
       const result =await couponsCollection.deleteOne(query)
       res.send(result)
     })
+
+    // payment related api 
+    app.post("/create-payment-intent", async (req, res) => {
+      const price = req.body.price
+      const priceCents = parseFloat(price)*100
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: priceCents,
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+    
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
+    // save a payment info to database 
+    app.post("/paymentinfo", async (req, res)=>{
+      const newPaymentInfo = req.body
+      const result = await paymentCollection.insertOne(newPaymentInfo)
+      res.send(result)
+    }) 
 
 
 
