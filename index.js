@@ -187,22 +187,41 @@ async function run() {
       res.send(result)
     })
 
+    // check coupons 
+    app.get("/couponsvalidation/:code", async (req, res)=>{
+      const code = req.params.code
+      const result = await couponsCollection.findOne({code})
+      if(!result){
+          return res.send({notFound:"Coupon Code not valid"})
+      }
+      res.send(result)
+
+    })
+
     // payment related api 
     app.post("/create-payment-intent", async (req, res) => {
-      const price = req.body.price
-      const priceCents = parseFloat(price)*100
-      // Create a PaymentIntent with the order amount and currency
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: priceCents,
-        currency: "usd",
-        automatic_payment_methods: {
-          enabled: true,
-        },
-      });
+      try {
+        const price = req.body.price;
+        const priceCents = parseFloat(price) * 100;
     
-      res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
+        // Create a PaymentIntent with the order amount and currency
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: priceCents,
+          currency: "usd",
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
+    
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      } catch (error) {
+        console.error("Error creating payment intent:", error);
+        res.status(500).send({
+          error: "Failed to create payment intent",
+        });
+      }
     });
 
     // save a payment info to database 
@@ -211,6 +230,14 @@ async function run() {
       const result = await paymentCollection.insertOne(newPaymentInfo)
       res.send(result)
     }) 
+
+
+    // get payment details of a user
+    app.get("/payment/:email", async (req, res)=>{
+      const email= req.params.email
+      const result = await paymentCollection.find({clintEmail:email}).toArray()
+      res.send(result)
+    })
 
 
 
