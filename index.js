@@ -198,6 +198,13 @@ async function run() {
 
     })
 
+    // get all coupons 
+    app.get("/allCoupons", async (req, res)=>{
+      const result = await couponsCollection.find().toArray(
+        res.send(result)
+      )
+    })
+
     // payment related api 
     app.post("/create-payment-intent", async (req, res) => {
       try {
