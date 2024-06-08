@@ -36,9 +36,26 @@ async function run() {
     const couponsCollection = client.db("ApartmentDB").collection("allcoupons")
     const paymentCollection = client.db("ApartmentDB").collection("allPayment")
     // apartment related api
-    app.get("/apartments", async (req, res)=>{
-      const result =await apartmentCollection.find().toArray()
-      res.send(result)
+    app.get("/apartments", async (req, res) => {
+        const size = parseInt(req.query.size);
+        const page = parseInt(req.query.page) - 1;
+    
+        let process = [
+          { $skip: size * page },
+          { $limit: size }
+        ];
+    
+        const result = await apartmentCollection.aggregate(process).toArray();
+        res.send(result);
+      
+    });
+
+    // get apartmentcount 
+
+    app.get("/apartmentCounts", async (req, res)=>{
+      const result = await apartmentCollection.aggregate().toArray();
+        res.send(result);
+      
     })
 
     app.post("/agreement", async (req, res)=>{
