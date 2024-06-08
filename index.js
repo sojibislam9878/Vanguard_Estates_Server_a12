@@ -55,7 +55,13 @@ async function run() {
     app.get("/apartmentCounts", async (req, res)=>{
       const result = await apartmentCollection.aggregate().toArray();
         res.send(result);
+        console.log(result);
       
+    })
+
+    app.get("/vacantapartemnt", async (req, res)=>{
+      const result = await apartmentCollection.find({occupancy_status:"vacant"}).toArray()
+      res.send(result)
     })
 
     app.post("/agreement", async (req, res)=>{
@@ -68,6 +74,24 @@ async function run() {
       const newAgreement = req.body;
       const result = await agreementCollection.insertOne(newAgreement);
       res.send(result);
+
+    })
+
+    app.put("/updateapartmentstatus/:apartmentId", async (req, res)=>{
+      const {apartmentId}= req.params
+      console.log(apartmentId)
+      // if (!id) {
+      //   return console.log("id not found");
+      // }
+      const options = {upsert:true}
+      const query = { _id: new ObjectId (apartmentId) }
+      const updateDocs = {
+        $set:{
+          occupancy_status:"occupied"
+        }
+      }
+      const result = await apartmentCollection.updateOne(query, updateDocs, options)
+        res.send(result)
 
     })
 
@@ -96,7 +120,8 @@ async function run() {
       if (action === "accept") {
         const updateDocs = {
           $set:{
-            status:"checked"
+            status:"checked",
+            accepteDate:new Date().toISOString().split('T')[0]
           }
         }
 
@@ -158,6 +183,12 @@ async function run() {
       }
 
       const result = await usersCollection.updateOne(query, updateDocs)
+      res.send(result)
+    })
+
+    // get all users 
+    app.get("/allusers", async (req, res)=>{
+      const result = await usersCollection.find({role:"user"}).toArray()
       res.send(result)
     })
 
