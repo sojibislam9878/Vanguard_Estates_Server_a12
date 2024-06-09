@@ -3,6 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const jwt = require('jsonwebtoken');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const app = express()
 const port = process.env.PORT || 3000
@@ -17,6 +18,20 @@ const corsOptions = {
   
   app.use(express.json())
   app.use(cookieParser())
+  const verifyToken = (req, res, next)=>{
+    console.log(req.headers.authorization);
+    if (!req.headers.authorization) {
+      return res.status(401).send({message:"unauthorized"})
+    }
+    const token =req.headers.authorization.split(" ")[1]
+    jwt.verify(token, process.env.ACC_TOKEN_SECRET, async(err,decoded )=>{
+      if (err) {
+        return res.status(403).send({message:"forbidden access"})
+      }
+      req.decoded = decoded
+      next()
+    })
+  }
 
   const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.lb51cqq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 const client = new MongoClient(uri, {
@@ -35,6 +50,18 @@ async function run() {
     const announcmentCollection = client.db("ApartmentDB").collection("allAnnouncment")
     const couponsCollection = client.db("ApartmentDB").collection("allcoupons")
     const paymentCollection = client.db("ApartmentDB").collection("allPayment")
+
+
+    // jwt related token 
+    app.post("/jwt", (req, res)=>{
+      const user =req.body
+      const token = jwt.sign(user, process.env.ACC_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+    // res.send("hi")
+        res.send(token)
+    })
+
     // apartment related api
     app.get("/apartments", async (req, res) => {
         const size = parseInt(req.query.size);
@@ -102,7 +129,7 @@ async function run() {
     })
 
     // find a agreement by email 
-    app.get("/agreement/:email", async (req, res)=>{
+    app.get("/agreement/:email", verifyToken, async (req, res)=>{
       const email = req.params.email
       const result = await agreementCollection.findOne({userEmail:email})
       res.send(result)
