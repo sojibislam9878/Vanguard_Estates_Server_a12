@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000
 
 // middleware
 const corsOptions = {
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://sojibislam9878-assignment12.web.app'],
     credentials: true,
     optionSuccessStatus: 200,
   }
@@ -19,7 +19,6 @@ const corsOptions = {
   app.use(express.json())
   app.use(cookieParser())
   const verifyToken = (req, res, next)=>{
-    console.log(req.headers.authorization);
     if (!req.headers.authorization) {
       return res.status(401).send({message:"unauthorized"})
     }
@@ -129,7 +128,7 @@ async function run() {
     })
 
     // find a agreement by email 
-    app.get("/agreement/:email", verifyToken, async (req, res)=>{
+    app.get("/agreement/:email", async (req, res)=>{
       const email = req.params.email
       const result = await agreementCollection.findOne({userEmail:email})
       res.send(result)
@@ -240,6 +239,12 @@ async function run() {
       res.send(result)
     })
 
+    // get all announcment 
+    app.get("/allannouncments", async (req, res)=>{
+      const result = await announcmentCollection.find().toArray()
+      res.send(result)
+    })
+
     // coupons related api 
     app.post("/coupons" , async (req, res)=>{
       const newCoupon = req.body
@@ -313,51 +318,65 @@ async function run() {
       res.send(result)
     }) 
 
+    app.get("/payment/:email", async (req, res) => {
+        const search = req.query.search;
+        const email = req.params.email;
+    
+        // Base query object with clintEmail filter
+        let query = {
+          clintEmail: email
+        };
+        const result = await paymentCollection.find(query).toArray();
+    
+        // Log the result for debugging
+        console.log('Result:', result);
+    
+        // Send the result back to the client
+        res.send(result);
+    });
+
 
     // get payment details of a user
-    app.get("/payment/:email", async (req, res)=>{
-      const email= req.params.email
-      const result = await paymentCollection.find({clintEmail:email}).toArray()
-      res.send(result)
-    })
-
-
-
-    // auth related api
-    app.post('/jwt', async (req, res) => {
-      const user = req.body
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '365d',
-      })
-      res
-        .cookie('token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        })
-        .send({ success: true })
-    })
-    // Logout
-    app.get('/logout', async (req, res) => {
+    app.get("/payments/:email", async (req, res) => {
       try {
-        res
-          .clearCookie('token', {
-            maxAge: 0,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-          })
-          .send({ success: true })
-        console.log('Logout successful')
-      } catch (err) {
-        res.status(500).send(err)
+        const search = req.query.search;
+        const email = req.params.email;
+    
+        // Base query object with clintEmail filter
+        let query = {
+          clintEmail: email
+        };
+    
+        // Log the search term for debugging
+        console.log('Search Term:', search);
+    
+        // Add paymentMonth filter if search is provided
+        if (search) {
+          query.paymentMonth = { $regex: search, $options: "i" };
+        }
+    
+        // Log the query object for debugging
+        console.log('Query:', query);
+    
+        // Fetch data from the collection based on the query
+        const result = await paymentCollection.find(query).toArray();
+    
+        // Log the result for debugging
+        console.log('Result:', result);
+    
+        // Send the result back to the client
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching payment data:", error);
+        res.status(500).send("Internal Server Error");
       }
-    })
+    });
 
     // Send a ping to confirm a successful connection
-    await client.db('admin').command({ ping: 1 })
-    console.log(
-      'Pinged your deployment. You successfully connected to MongoDB!'
-    )
+    // await client.db('admin').command({ ping: 1 })
+    // console.log(
+    //   'Pinged your deployment. You successfully connected to MongoDB!'
+    // )
   } finally {
     // Ensures that the client will close when you finish/error
   }
