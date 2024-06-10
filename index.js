@@ -90,7 +90,7 @@ async function run() {
       res.send(result)
     })
 
-    app.post("/agreement", async (req, res)=>{
+    app.post("/agreement",verifyToken, async (req, res)=>{
       const {email}=req.query
       console.log(email);
       const userExist = await agreementCollection.findOne({ userEmail:email })
@@ -103,7 +103,7 @@ async function run() {
 
     })
 
-    app.put("/updateapartmentstatus/:apartmentId", async (req, res)=>{
+    app.put("/updateapartmentstatus/:apartmentId", verifyToken,async (req, res)=>{
       const {apartmentId}= req.params
       console.log(apartmentId)
       // if (!id) {
@@ -122,20 +122,20 @@ async function run() {
     })
 
     // find all agreement 
-    app.get("/allagreements", async (req, res)=>{
+    app.get("/allagreements", verifyToken,async (req, res)=>{
       const result = await agreementCollection.find({status:"pending"}).toArray()
       res.send(result)
     })
 
     // find a agreement by email 
-    app.get("/agreement/:email", async (req, res)=>{
+    app.get("/agreement/:email", verifyToken,async (req, res)=>{
       const email = req.params.email
       const result = await agreementCollection.findOne({userEmail:email})
       res.send(result)
     })
 
     // update agreement by admin 
-    app.put("/agreement/update/:id", async(req,res)=>{
+    app.put("/agreement/update/:id", verifyToken,async(req,res)=>{
       console.log(req.params.id);
       const id = req.params.id
       const {action} = req.body
@@ -169,7 +169,7 @@ async function run() {
 
     // user related api 
 
-    app.put("/user", async (req, res)=>{
+    app.put("/user", verifyToken,async (req, res)=>{
       const user = req.body
       const isExist =await usersCollection.findOne({email:user?.email})
       if (isExist) {
@@ -187,20 +187,20 @@ async function run() {
     })
     
     // find user with email
-    app.get("/user/:email" , async (req, res)=>{
+    app.get("/user/:email" ,  verifyToken,async (req, res)=>{
       const email = req.params.email
       const result = await usersCollection.findOne({email})
       res.send(result)
     })
 
     // get all member 
-    app.get ("/members", async(req, res)=>{
+    app.get ("/members", verifyToken,async(req, res)=>{
       const result =await usersCollection.find({role:"member"}).toArray()
       res.send(result)
     })
 
     // remove a member 
-    app.patch("/user/update/:email", async (req, res)=>{
+    app.patch("/user/update/:email", verifyToken,async (req, res)=>{
       const email = req.params.email
       const user = req.body
       const query = {email}
@@ -213,13 +213,13 @@ async function run() {
     })
 
     // get all users 
-    app.get("/allusers", async (req, res)=>{
+    app.get("/allusers", verifyToken,async (req, res)=>{
       const result = await usersCollection.find({role:"user"}).toArray()
       res.send(result)
     })
 
     // update user to member
-    app.patch("/user/:email", async (req, res)=>{
+    app.patch("/user/:email", verifyToken,async (req, res)=>{
       const email = req.params.email
       const user = req.body
       const query = {email}
@@ -233,33 +233,33 @@ async function run() {
 
     // announcment related data 
     // create a new announcment
-    app.post("/announcment", async (req, res)=>{
+    app.post("/announcment", verifyToken,async (req, res)=>{
       const newAnnouncement = req.body
       const result =await announcmentCollection.insertOne(newAnnouncement)
       res.send(result)
     })
 
     // get all announcment 
-    app.get("/allannouncments", async (req, res)=>{
+    app.get("/allannouncments",verifyToken, async (req, res)=>{
       const result = await announcmentCollection.find().toArray()
       res.send(result)
     })
 
     // coupons related api 
-    app.post("/coupons" , async (req, res)=>{
+    app.post("/coupons" , verifyToken,async (req, res)=>{
       const newCoupon = req.body
       const result = await couponsCollection.insertOne(newCoupon)
       res.send(result)
     })
 
     // get all coupons 
-    app.get("/allcoupons", async (req, res)=>{
+    app.get("/allcoupons", verifyToken,async (req, res)=>{
       const result = await couponsCollection.find().toArray()
       res.send(result)
     })
 
     // delete a coupons 
-    app.delete("/deletecoupons/:id", async (req, res)=>{
+    app.delete("/deletecoupons/:id",verifyToken,async (req, res)=>{
       const id =req.params.id
       const query = { _id: new ObjectId (id) }
       console.log(query);
@@ -268,7 +268,7 @@ async function run() {
     })
 
     // check coupons 
-    app.get("/couponsvalidation/:code", async (req, res)=>{
+    app.get("/couponsvalidation/:code", verifyToken,async (req, res)=>{
       const code = req.params.code
       const result = await couponsCollection.findOne({code})
       if(!result){
@@ -279,14 +279,14 @@ async function run() {
     })
 
     // get all coupons 
-    app.get("/allCoupons", async (req, res)=>{
+    app.get("/allCoupons", verifyToken,async (req, res)=>{
       const result = await couponsCollection.find().toArray(
         res.send(result)
       )
     })
 
     // payment related api 
-    app.post("/create-payment-intent", async (req, res) => {
+    app.post("/create-payment-intent", verifyToken,async (req, res) => {
       try {
         const price = req.body.price;
         const priceCents = parseFloat(price) * 100;
@@ -312,13 +312,13 @@ async function run() {
     });
 
     // save a payment info to database 
-    app.post("/paymentinfo", async (req, res)=>{
+    app.post("/paymentinfo", verifyToken,async (req, res)=>{
       const newPaymentInfo = req.body
       const result = await paymentCollection.insertOne(newPaymentInfo)
       res.send(result)
     }) 
 
-    app.get("/payment/:email", async (req, res) => {
+    app.get("/payment/:email", verifyToken,async (req, res) => {
         const search = req.query.search;
         const email = req.params.email;
     
@@ -337,7 +337,7 @@ async function run() {
 
 
     // get payment details of a user
-    app.get("/payments/:email", async (req, res) => {
+    app.get("/payments/:email",verifyToken, async (req, res) => {
       try {
         const search = req.query.search;
         const email = req.params.email;
