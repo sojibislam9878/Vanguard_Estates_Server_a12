@@ -19,17 +19,8 @@ const corsOptions = {
   app.use(express.json())
   app.use(cookieParser())
   const verifyToken = (req, res, next)=>{
-    if (!req.headers.authorization) {
-      return res.status(401).send({message:"unauthorized"})
-    }
-    const token =req.headers.authorization.split(" ")[1]
-    jwt.verify(token, process.env.ACC_TOKEN_SECRET, async(err,decoded )=>{
-      if (err) {
-        return res.status(403).send({message:"forbidden access"})
-      }
-      req.decoded = decoded
+   
       next()
-    })
   }
 
   const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.lb51cqq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -334,6 +325,23 @@ async function run() {
         // Send the result back to the client
         res.send(result);
     });
+
+    // get a single coupn by id 
+    app.get("/singlecoupon/:id", async (req, res)=>{
+      const id = req.params.id
+      console.log(id);
+      const result = await couponsCollection.findOne({_id: new ObjectId(id)})
+      console.log(result);
+      res.send(result)
+    })
+
+    app.put("/updatesinglecoupon/:id" , async (req, res)=>{
+      const id = req.params.id
+      const updateDocs = req.body
+      console.log(updateDocs, id);
+      const result = await couponsCollection.updateOne({ _id: new ObjectId(id) },{ $set: updateDocs })
+      res.send(result)
+    })
 
 
     // get payment details of a user
